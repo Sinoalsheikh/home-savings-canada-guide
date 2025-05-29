@@ -2,7 +2,7 @@
 import React from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { TrendingUp, DollarSign, Leaf, Download, Calendar, MapPin, Home, Zap, Users, Award, ArrowRight } from 'lucide-react';
+import { TrendingUp, DollarSign, Leaf, Download, Calendar, MapPin, Home, Zap, Users, Award, ArrowRight, Shield } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import TrustBadges from './TrustBadges';
 
