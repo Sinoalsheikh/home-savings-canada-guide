@@ -1,13 +1,56 @@
-// Update this page (the content is just a fallback if you fail to update the page)
+
+import React, { useState } from 'react';
+import { LanguageProvider } from '@/contexts/LanguageContext';
+import Hero from '@/components/Hero';
+import AssessmentOrchestrator from '@/components/AssessmentOrchestrator';
+import Results from '@/components/Results';
+
+type AppState = 'welcome' | 'assessment' | 'results';
 
 const Index = () => {
+  const [currentState, setCurrentState] = useState<AppState>('welcome');
+  const [assessmentData, setAssessmentData] = useState(null);
+
+  const handleStartAssessment = () => {
+    setCurrentState('assessment');
+  };
+
+  const handleAssessmentComplete = (data: any) => {
+    setAssessmentData(data);
+    setCurrentState('results');
+  };
+
+  const handleBackToWelcome = () => {
+    setCurrentState('welcome');
+  };
+
+  const handleReset = () => {
+    setAssessmentData(null);
+    setCurrentState('welcome');
+  };
+
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100">
-      <div className="text-center">
-        <h1 className="text-4xl font-bold mb-4">Welcome to Your Blank App</h1>
-        <p className="text-xl text-gray-600">Start building your amazing project here!</p>
+    <LanguageProvider>
+      <div className="min-h-screen">
+        {currentState === 'welcome' && (
+          <Hero onStartAssessment={handleStartAssessment} />
+        )}
+        
+        {currentState === 'assessment' && (
+          <AssessmentOrchestrator 
+            onComplete={handleAssessmentComplete}
+            onBack={handleBackToWelcome}
+          />
+        )}
+        
+        {currentState === 'results' && assessmentData && (
+          <Results 
+            data={assessmentData}
+            onReset={handleReset}
+          />
+        )}
       </div>
-    </div>
+    </LanguageProvider>
   );
 };
 
