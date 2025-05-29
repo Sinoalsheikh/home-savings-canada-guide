@@ -1,11 +1,17 @@
-
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { ChevronLeft, ChevronRight, Save, Clock, CheckCircle } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import QuestionRenderer from './QuestionRenderer';
 import ContactCapture from './ContactCapture';
+import { 
+  encryptData, 
+  decryptData, 
+  validateCanadianPostalCode, 
+  sanitizeInput,
+  secureDataCleanup 
+} from '@/utils/security';
 
 interface AssessmentData {
   postalCode: string;
@@ -50,6 +56,33 @@ const AssessmentOrchestrator: React.FC<AssessmentOrchestratorProps> = ({ onCompl
     budget: ''
   });
 
+  // Load saved progress on mount
+  useEffect(() => {
+    const loadSavedProgress = async () => {
+      try {
+        const savedData = localStorage.getItem('smartHomeSavingsAssessment');
+        if (savedData) {
+          const decryptedData = await decryptData(savedData);
+          if (decryptedData && decryptedData.data) {
+            setAssessmentData(decryptedData.data);
+            setCurrentStep(decryptedData.step || 0);
+          }
+        }
+      } catch (error) {
+        // If decryption fails, clear corrupted data
+        localStorage.removeItem('smartHomeSavingsAssessment');
+      }
+    };
+    
+    loadSavedProgress();
+    
+    // Cleanup on unmount
+    return () => {
+      // Optional: Clear sensitive data when component unmounts
+      // secureDataCleanup();
+    };
+  }, []);
+
   const questions = [
     {
       id: 'postalCode',
@@ -57,7 +90,7 @@ const AssessmentOrchestrator: React.FC<AssessmentOrchestratorProps> = ({ onCompl
       title: t('question.postal.title'),
       help: t('question.postal.help'),
       placeholder: 'K1A 0A6',
-      validation: (value: string) => /^[A-Za-z]\d[A-Za-z] ?\d[A-Za-z]\d$/.test(value)
+      validation: (value: string) => validateCanadianPostalCode(value)
     },
     {
       id: 'propertyType',
@@ -227,9 +260,12 @@ const AssessmentOrchestrator: React.FC<AssessmentOrchestratorProps> = ({ onCompl
   const progress = ((currentStep + 1) / totalSteps) * 100;
 
   const handleAnswerChange = (questionId: string, value: string) => {
+    // Sanitize input
+    const sanitizedValue = sanitizeInput(value);
+    
     setAssessmentData(prev => ({
       ...prev,
-      [questionId]: value
+      [questionId]: sanitizedValue
     }));
   };
 
@@ -249,17 +285,36 @@ const AssessmentOrchestrator: React.FC<AssessmentOrchestratorProps> = ({ onCompl
     }
   };
 
-  const handleSave = () => {
-    localStorage.setItem('smartHomeSavingsAssessment', JSON.stringify({
-      data: assessmentData,
-      step: currentStep,
-      timestamp: new Date().toISOString()
-    }));
-    console.log('Progress saved!');
+  const handleSave = async () => {
+    try {
+      const dataToSave = {
+        data: assessmentData,
+        step: currentStep,
+        timestamp: new Date().toISOString()
+      };
+      
+      const encryptedData = await encryptData(dataToSave);
+      localStorage.setItem('smartHomeSavingsAssessment', encryptedData);
+      
+      // Show success feedback (could use toast in production)
+      console.log('Progress saved securely!');
+    } catch (error) {
+      console.error('Failed to save progress:', error);
+      // Fallback to unencrypted storage for critical user experience
+      localStorage.setItem('smartHomeSavingsAssessment', JSON.stringify({
+        data: assessmentData,
+        step: currentStep,
+        timestamp: new Date().toISOString()
+      }));
+    }
   };
 
   const handleContactSubmit = (contactData: any) => {
     const completeData = { ...assessmentData, ...contactData };
+    
+    // Clear saved progress after successful submission
+    localStorage.removeItem('smartHomeSavingsAssessment');
+    
     onComplete(completeData);
   };
 
