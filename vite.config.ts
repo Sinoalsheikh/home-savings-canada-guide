@@ -32,13 +32,23 @@ export default defineConfig(({ mode }) => ({
     },
   },
   build: {
-    // Production optimizations
-    minify: 'terser',
-    sourcemap: false, // Disable source maps in production for security
+    // Only apply production optimizations in production mode
+    ...(mode === 'production' && {
+      minify: 'terser',
+      sourcemap: false,
+      terserOptions: {
+        compress: {
+          drop_console: true,
+          drop_debugger: true
+        }
+      }
+    }),
+    ...(mode === 'development' && {
+      minify: false,
+      sourcemap: true
+    }),
     rollupOptions: {
       output: {
-        // Remove comments and console.logs in production
-        compact: true,
         // Code splitting for better performance
         manualChunks: {
           vendor: ['react', 'react-dom'],
@@ -48,21 +58,11 @@ export default defineConfig(({ mode }) => ({
         }
       }
     },
-    // Security and performance settings
     target: 'es2020',
     cssCodeSplit: true,
-    assetsInlineLimit: 4096,
-    // Remove console.logs in production
-    terserOptions: {
-      compress: {
-        drop_console: mode === 'production',
-        drop_debugger: true
-      }
-    }
+    assetsInlineLimit: 4096
   },
-  // Production environment optimizations
   define: {
-    // Remove development-only code
     __DEV__: mode === 'development'
   }
 }));
