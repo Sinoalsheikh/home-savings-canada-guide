@@ -1,35 +1,37 @@
 
-import { StrictMode } from "react";
-import { createRoot } from "react-dom/client";
+import React from "react";
+import ReactDOM from "react-dom/client";
 import App from "./App.tsx";
 import "./index.css";
-import { setupCSPReporting } from "./utils/security";
 
-// Initialize security features
-setupCSPReporting();
+// Add error boundary logging
+window.addEventListener('error', (event) => {
+  console.error('Global error caught:', event.error);
+});
 
-// Clean up expired data on app start
+window.addEventListener('unhandledrejection', (event) => {
+  console.error('Unhandled promise rejection:', event.reason);
+});
+
+console.log('Main.tsx: Starting React app initialization');
+
 try {
-  const keys = Object.keys(localStorage);
-  keys.forEach(key => {
-    if (key.startsWith('smart-home-') || key.startsWith('energy-assessment-')) {
-      try {
-        const data = JSON.parse(localStorage.getItem(key) || '{}');
-        if (data.expiresAt && Date.now() > data.expiresAt) {
-          localStorage.removeItem(key);
-        }
-      } catch {
-        // Remove malformed data
-        localStorage.removeItem(key);
-      }
-    }
-  });
+  const rootElement = document.getElementById("root");
+  if (!rootElement) {
+    throw new Error('Root element not found');
+  }
+  
+  console.log('Main.tsx: Root element found, creating React root');
+  const root = ReactDOM.createRoot(rootElement);
+  
+  console.log('Main.tsx: Rendering App component');
+  root.render(
+    <React.StrictMode>
+      <App />
+    </React.StrictMode>,
+  );
+  
+  console.log('Main.tsx: App rendered successfully');
 } catch (error) {
-  console.warn('Failed to clean up expired data:', error);
+  console.error('Main.tsx: Error during app initialization:', error);
 }
-
-createRoot(document.getElementById("root")!).render(
-  <StrictMode>
-    <App />
-  </StrictMode>
-);

@@ -14,6 +14,9 @@ import {
   trackConsent 
 } from '@/utils/security';
 
+// Add debug logging
+console.log('ContactCapture: Component loading');
+
 interface ContactData {
   name: string;
   email: string;
@@ -33,6 +36,8 @@ interface FormErrors {
 }
 
 const ContactCapture: React.FC<ContactCaptureProps> = ({ onSubmit }) => {
+  console.log('ContactCapture: Component rendering');
+  
   const { t } = useLanguage();
   const [formData, setFormData] = useState<ContactData>({
     name: '',
@@ -86,6 +91,7 @@ const ContactCapture: React.FC<ContactCaptureProps> = ({ onSubmit }) => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    console.log('ContactCapture: Form submission started');
     
     if (!checkRateLimit()) {
       setRateLimitExceeded(true);
@@ -121,6 +127,7 @@ const ContactCapture: React.FC<ContactCaptureProps> = ({ onSubmit }) => {
         consent: formData.consent
       };
       
+      console.log('ContactCapture: Calling onSubmit with sanitized data');
       onSubmit(sanitizedData);
     }
     
