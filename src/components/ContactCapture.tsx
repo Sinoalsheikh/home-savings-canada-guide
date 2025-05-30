@@ -25,6 +25,13 @@ interface ContactCaptureProps {
   onSubmit: (data: ContactData) => void;
 }
 
+interface FormErrors {
+  name?: string;
+  email?: string;
+  phone?: string;
+  consent?: string;
+}
+
 const ContactCapture: React.FC<ContactCaptureProps> = ({ onSubmit }) => {
   const { t } = useLanguage();
   const [formData, setFormData] = useState<ContactData>({
@@ -33,7 +40,7 @@ const ContactCapture: React.FC<ContactCaptureProps> = ({ onSubmit }) => {
     phone: '',
     consent: false
   });
-  const [errors, setErrors] = useState<Partial<ContactData>>({});
+  const [errors, setErrors] = useState<FormErrors>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [rateLimitExceeded, setRateLimitExceeded] = useState(false);
 
@@ -88,7 +95,7 @@ const ContactCapture: React.FC<ContactCaptureProps> = ({ onSubmit }) => {
     setIsSubmitting(true);
     
     // Validate all fields
-    const newErrors: Partial<ContactData> = {};
+    const newErrors: FormErrors = {};
     let hasErrors = false;
     
     Object.keys(formData).forEach(key => {
