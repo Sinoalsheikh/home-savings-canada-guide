@@ -24,8 +24,7 @@ export default defineConfig(({ mode }) => ({
   },
   plugins: [
     react(),
-    mode === 'development' &&
-    componentTagger(),
+    mode === 'development' && componentTagger(),
   ].filter(Boolean),
   resolve: {
     alias: {
@@ -33,14 +32,37 @@ export default defineConfig(({ mode }) => ({
     },
   },
   build: {
-    // Security enhancements for production
+    // Production optimizations
+    minify: 'terser',
+    sourcemap: false, // Disable source maps in production for security
     rollupOptions: {
       output: {
         // Remove comments and console.logs in production
         compact: true,
+        // Code splitting for better performance
+        manualChunks: {
+          vendor: ['react', 'react-dom'],
+          ui: ['@radix-ui/react-toast', '@radix-ui/react-dialog', '@radix-ui/react-checkbox'],
+          router: ['react-router-dom'],
+          query: ['@tanstack/react-query']
+        }
       }
     },
-    // Enable source maps for debugging but exclude sensitive info
-    sourcemap: mode === 'development',
+    // Security and performance settings
+    target: 'es2020',
+    cssCodeSplit: true,
+    assetsInlineLimit: 4096,
+    // Remove console.logs in production
+    terserOptions: {
+      compress: {
+        drop_console: mode === 'production',
+        drop_debugger: true
+      }
+    }
+  },
+  // Production environment optimizations
+  define: {
+    // Remove development-only code
+    __DEV__: mode === 'development'
   }
 }));

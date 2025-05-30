@@ -91,7 +91,6 @@ const ContactCapture: React.FC<ContactCaptureProps> = ({ onSubmit }) => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log('ContactCapture: Form submission started');
     
     if (!checkRateLimit()) {
       setRateLimitExceeded(true);

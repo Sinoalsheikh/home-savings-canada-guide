@@ -1,3 +1,4 @@
+
 // Web Crypto API utilities for client-side encryption
 const ENCRYPTION_KEY_NAME = 'smart-home-savings-key';
 const DATA_EXPIRY_DAYS = 7;
@@ -17,7 +18,9 @@ async function getOrCreateEncryptionKey(): Promise<CryptoKey> {
       );
       return importedKey;
     } catch (error) {
-      console.warn('Failed to import existing key, generating new one');
+      if (process.env.NODE_ENV === 'development') {
+        console.warn('Failed to import existing key, generating new one');
+      }
     }
   }
   
@@ -59,7 +62,9 @@ export async function encryptData(data: any): Promise<string> {
     
     return btoa(String.fromCharCode(...combined));
   } catch (error) {
-    console.error('Encryption failed:', error);
+    if (process.env.NODE_ENV === 'development') {
+      console.error('Encryption failed:', error);
+    }
     throw new Error('Failed to encrypt data');
   }
 }
@@ -90,7 +95,9 @@ export async function decryptData(encryptedString: string): Promise<any> {
     
     return decodedData.data;
   } catch (error) {
-    console.error('Decryption failed:', error);
+    if (process.env.NODE_ENV === 'development') {
+      console.error('Decryption failed:', error);
+    }
     throw new Error('Failed to decrypt data');
   }
 }
@@ -151,7 +158,9 @@ export function secureDataCleanup(): void {
       }
     });
   } catch (error) {
-    console.error('Data cleanup failed:', error);
+    if (process.env.NODE_ENV === 'development') {
+      console.error('Data cleanup failed:', error);
+    }
   }
 }
 
@@ -205,19 +214,23 @@ export function trackConsent(consentType: string): void {
     const limitedConsents = existingConsents.slice(-10);
     localStorage.setItem('user-consents', JSON.stringify(limitedConsents));
   } catch (error) {
-    console.error('Failed to track consent:', error);
+    if (process.env.NODE_ENV === 'development') {
+      console.error('Failed to track consent:', error);
+    }
   }
 }
 
 // CSP violation reporting (client-side)
 export function setupCSPReporting(): void {
   window.addEventListener('securitypolicyviolation', (event) => {
-    console.warn('CSP Violation:', {
-      blockedURI: event.blockedURI,
-      violatedDirective: event.violatedDirective,
-      originalPolicy: event.originalPolicy,
-      disposition: event.disposition
-    });
+    if (process.env.NODE_ENV === 'development') {
+      console.warn('CSP Violation:', {
+        blockedURI: event.blockedURI,
+        violatedDirective: event.violatedDirective,
+        originalPolicy: event.originalPolicy,
+        disposition: event.disposition
+      });
+    }
     // In production, send to monitoring service
   });
 }
